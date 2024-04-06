@@ -1,118 +1,125 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
+import React, { useEffect, useState } from "react";
+import { Dimensions, FlatList, Image, ScrollView, Text, View } from "react-native";
 
-import React from 'react';
-import type {PropsWithChildren} from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+const ImperoTask = () => {
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+  const [categoriesData, setCategoriesData] = useState('');
+  const [subCategoriesData, setSubCategoriesData] = useState('');
+  const windowWidth = Dimensions.get('window').width;
 
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
+  useEffect(() => {
+    catergoriesApiCall();
+    subCatergoriesApiCall();
+  }, []);
 
-function Section({children, title}: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
-}
+  const catergoriesApiCall = () => {
+    const body = JSON.stringify({
+      CategoryId: 56,
+      PageIndex: 2
+    });
+    fetch('http://esptiles.imperoserver.in/api/API/Product/DashBoard', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: body,
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        setCategoriesData(data.Result?.Category);
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+      });
 
-function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
+  };
 
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+  const subCatergoriesApiCall = () => {
+    const body = JSON.stringify({
+      CategoryId: 0,
+      DeviceManufacturer: "Google",
+      DeviceModel: "Android SDK built for x86",
+      DeviceToken: " ",
+      PageIndex: 1
+    });
+    fetch('http://esptiles.imperoserver.in/api/API/Product/DashBoard', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: body,
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        setSubCategoriesData(data.Result?.Category);
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+      });
+
   };
 
   return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
+    <>
+      <View style={{ backgroundColor: 'black', height: '10%', justifyContent: 'center' }}>
+        <View style={{
+          flexDirection: 'row', justifyContent: 'flex-end', marginBottom
+            : 10
+        }} >
+          <Text style={{ color: 'white', marginRight: '22%' }}>ESPTILES</Text>
+          <Image
+            source={require('../ImperoTask/Assets/filterImage.png')}
+            style={{ width: 25, height: 25, marginRight: 15 }}
+          />
+          <Image
+            source={require('../ImperoTask/Assets/searchImage.png')}
+            style={{ width: 25, height: 25, alignSelf: 'center', marginRight: 15 }}
+          />
         </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
+        <FlatList
+          style={{ alignSelf: 'center', position: 'absolute', bottom: 8 }}
+          data={categoriesData}
+          horizontal={true}
+          renderItem={({ item }) => {
+            return (
+              <View>
+                <Text style={{ fontSize: 20, color: 'white' }}>{[item.Name]}</Text>
+              </View>
+            )
+          }}
+        />
+      </View>
+      <View style={{ flex: 1, padding: 14 }}>
+        <FlatList
+          showsVerticalScrollIndicator={false}
+          style={{ alignSelf: 'center' }}
+          data={subCategoriesData}
+          renderItem={({ item }) => {
+            return (
+              <View>
+                {item.SubCategories && item.SubCategories.map((subItem: any, index: any) => (
+                  <View style={{ marginTop: 15 }} key={index}>
+                    <Text style={{ fontSize: 16, fontWeight: "bold", }}>{subItem.Name}</Text>
+                    <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
+                      <View style={{ flexDirection: 'row', marginTop: 8 }}>
+                        {subItem.Product && subItem.Product.map((productItem: any, productIndex: any) => (
+                          <View style={{ marginRight: 10, justifyContent: 'center', }} key={productIndex}>
+                            <Image style={{ height: windowWidth * 0.3, width: windowWidth * 0.4, borderRadius: 5, alignSelf: 'center' }} source={{ uri: productItem.ImageName }} />
+                            <Text style={{ fontSize: 10, marginTop: 5, alignSelf: 'center' }}>{productItem.Name}</Text>
+                          </View>
+                        ))}
+                      </View>
+                    </ScrollView>
+                  </View>
+                ))}
+              </View>
+            );
+          }}
+        />
+      </View>
+    </>
+  )
+
 }
 
-const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-});
-
-export default App;
+export default ImperoTask;
